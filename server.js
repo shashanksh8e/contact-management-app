@@ -10,18 +10,26 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// MongoDB connection with proper async handling
+// MongoDB connection with better error handling
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/contactmanager';
 
-const connectDB = async () => {
-  try {
-    await mongoose.connect(MONGODB_URI);
-    console.log('✅ Connected to MongoDB successfully');
-  } catch (error) {
-    console.log('❌ MongoDB connection error:', error.message);
-    process.exit(1);
-  }
-};
+// Simplified connection for Atlas
+mongoose.connect(MONGODB_URI)
+.then(() => {
+  console.log('✅ Connected to MongoDB successfully');
+})
+.catch((error) => {
+  console.log('❌ MongoDB connection error:', error.message);
+});
+
+// Disable mongoose buffering to fail fast
+mongoose.set('bufferCommands', false);
+
+const db = mongoose.connection;
+db.on('error', console.error.bind(console, 'MongoDB connection error:'));
+db.once('open', () => {
+  console.log('Connected to MongoDB');
+});
 
 // Contact Schema
 const contactSchema = new mongoose.Schema({
@@ -183,13 +191,6 @@ app.get('*', (req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
-
-// Start server only after DB connection
-const startServer = async () => {
-  await connectDB();
-  app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-  });
-};
-
-startServer();
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
