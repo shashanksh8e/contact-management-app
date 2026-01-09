@@ -10,18 +10,21 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// MongoDB connection
+// MongoDB connection with better error handling
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/contactmanager';
 
-// Remove SSL options that cause issues
 mongoose.connect(MONGODB_URI, {
   useNewUrlParser: true,
-  useUnifiedTopology: true
+  useUnifiedTopology: true,
+  serverSelectionTimeoutMS: 30000, // 30 seconds
+  socketTimeoutMS: 45000, // 45 seconds
+  bufferMaxEntries: 0,
+  maxPoolSize: 10,
+  minPoolSize: 5
 }).then(() => {
-  console.log('Connected to MongoDB successfully');
+  console.log('✅ Connected to MongoDB successfully');
 }).catch((error) => {
-  console.log('MongoDB connection error:', error.message);
-  // Continue running even if DB fails
+  console.log('❌ MongoDB connection error:', error.message);
 });
 
 const db = mongoose.connection;
@@ -65,10 +68,14 @@ const Contact = mongoose.model('Contact', contactSchema);
 // Get all contacts
 app.get('/api/contacts', async (req, res) => {
   try {
-    const contacts = await Contact.find().sort({ createdAt: -1 });
+    const contacts = await Contact.find().sort({ createdAt: -1 }).maxTimeMS(20000);
     res.json(contacts);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Error fetching contacts:', error);
+    res.status(500).json({ 
+      message: 'Database connection issue. Please try again later.',
+      error: error.message 
+    });
   }
 });
 
