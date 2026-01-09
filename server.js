@@ -12,11 +12,16 @@ app.use(express.json());
 
 // MongoDB connection
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/contactmanager';
+
+// Remove SSL options that cause issues
 mongoose.connect(MONGODB_URI, {
   useNewUrlParser: true,
-  useUnifiedTopology: true,
-  serverSelectionTimeoutMS: 5000,
-  socketTimeoutMS: 45000,
+  useUnifiedTopology: true
+}).then(() => {
+  console.log('Connected to MongoDB successfully');
+}).catch((error) => {
+  console.log('MongoDB connection error:', error.message);
+  // Continue running even if DB fails
 });
 
 const db = mongoose.connection;
@@ -140,7 +145,7 @@ app.delete('/api/contacts/:id', async (req, res) => {
 });
 
 // Basic route for testing
-app.get('/', (req, res) => {
+app.get('/api', (req, res) => {
   res.json({ 
     message: 'Contact Management API is running!',
     endpoints: {
@@ -153,17 +158,12 @@ app.get('/', (req, res) => {
 });
 
 // Serve static files from React build
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, 'client/build')));
-  
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
-  });
-} else {
-  app.get('/', (req, res) => {
-    res.json({ message: 'Contact Management API is running!' });
-  });
-}
+app.use(express.static(path.join(__dirname, 'client/build')));
+
+// Handle React routing, return all requests to React app
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
+});
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
