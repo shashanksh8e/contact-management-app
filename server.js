@@ -22,9 +22,6 @@ mongoose.connect(MONGODB_URI)
   console.log('❌ MongoDB connection error:', error.message);
 });
 
-// Disable mongoose buffering to fail fast
-mongoose.set('bufferCommands', false);
-
 const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 db.once('open', () => {
