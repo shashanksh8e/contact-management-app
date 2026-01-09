@@ -139,12 +139,31 @@ app.delete('/api/contacts/:id', async (req, res) => {
   }
 });
 
-// Serve static files from React build
-app.use(express.static(path.join(__dirname, 'client/build')));
-
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
+// Basic route for testing
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'Contact Management API is running!',
+    endpoints: {
+      'GET /api/contacts': 'Get all contacts',
+      'POST /api/contacts': 'Create contact',
+      'PUT /api/contacts/:id': 'Update contact',
+      'DELETE /api/contacts/:id': 'Delete contact'
+    }
+  });
 });
+
+// Serve static files from React build
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, 'client/build')));
+  
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
+  });
+} else {
+  app.get('/', (req, res) => {
+    res.json({ message: 'Contact Management API is running!' });
+  });
+}
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
