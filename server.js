@@ -13,19 +13,17 @@ app.use(express.json());
 // MongoDB connection with better error handling
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/contactmanager';
 
-mongoose.connect(MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  serverSelectionTimeoutMS: 30000, // 30 seconds
-  socketTimeoutMS: 45000, // 45 seconds
-  bufferMaxEntries: 0,
-  maxPoolSize: 10,
-  minPoolSize: 5
-}).then(() => {
+// Simplified connection for Atlas
+mongoose.connect(MONGODB_URI)
+.then(() => {
   console.log('✅ Connected to MongoDB successfully');
-}).catch((error) => {
+})
+.catch((error) => {
   console.log('❌ MongoDB connection error:', error.message);
 });
+
+// Disable mongoose buffering to fail fast
+mongoose.set('bufferCommands', false);
 
 const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
@@ -148,6 +146,26 @@ app.delete('/api/contacts/:id', async (req, res) => {
     res.json({ message: 'Contact deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+});
+
+// Test database connection
+app.get('/api/test', async (req, res) => {
+  try {
+    const dbState = mongoose.connection.readyState;
+    const states = {
+      0: 'disconnected',
+      1: 'connected',
+      2: 'connecting',
+      3: 'disconnecting'
+    };
+    
+    res.json({
+      database: states[dbState],
+      message: dbState === 1 ? 'Database connected successfully!' : 'Database connection issue'
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 
