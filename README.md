@@ -54,8 +54,8 @@ The app is configured for deployment on Heroku with:
 
 ## Live Demo
 
-[Deployed Application URL]
+🚀 **Deployed Application**: [Contact Manager App](https://your-app-name.onrender.com)
 
 ## Repository
 
-[GitHub Repository URL]
+📁 **GitHub Repository**: [Contact Management App](https://github.com/yourusername/contact-management-app)

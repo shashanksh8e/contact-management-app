@@ -15,6 +15,9 @@ const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/contac
 mongoose.connect(MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
+  ssl: true,
+  tlsAllowInvalidCertificates: true,
+  tlsAllowInvalidHostnames: true
 });
 
 const db = mongoose.connection;
